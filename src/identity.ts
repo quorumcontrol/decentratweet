@@ -17,7 +17,7 @@ export const usernamePath = "/_decentratweet/username"
  * argument. The very first thing you do with the ChainTree should be to
  * ChangeOwner @param username - the username
  */
-export const publicUserKey = async (username: string) => {
+export const insecureUsernameKey = async (username: string) => {
     return EcdsaKey.passPhraseKey(Buffer.from(username), userNamespace)
 }
 
@@ -33,7 +33,7 @@ export const securePasswordKey = async (username: string, password: string) => {
  * When given a public-private key pair, returns the did of a chaintree created
  * by that pairing
  */
-const didFromKey = async (key: EcdsaKey) => {
+export const didFromKey = async (key: EcdsaKey) => {
     return await Tupelo.ecdsaPubkeyToAddress(key.publicKey)
 }
 
@@ -43,7 +43,7 @@ const didFromKey = async (key: EcdsaKey) => {
  */
 export const findUserTree = async (username: string) => {
     const c = await getAppCommunity()
-    const insecureKey = await publicUserKey(username)
+    const insecureKey = await insecureUsernameKey(username)
     const did = await didFromKey(insecureKey)
 
     let tip
@@ -77,7 +77,7 @@ export const findUserTree = async (username: string) => {
 export const register = async (username: string, password: string) => {
     const c = await getAppCommunity()
 
-    const insecureKey = await publicUserKey(username)
+    const insecureKey = await insecureUsernameKey(username)
     const secureKey = await securePasswordKey(username, password)
     const secureKeyAddress = await didFromKey(secureKey)
 
