@@ -17,34 +17,24 @@ export const usernamePath = "/_decentratweet/username"
  * argument. The very first thing you do with the ChainTree should be to
  * ChangeOwner @param username - the username
  */
-const publicUserKey = async (username: string) => {
+export const publicUserKey = async (username: string) => {
     return EcdsaKey.passPhraseKey(Buffer.from(username), userNamespace)
-}
-
-/**
- * Convert a username string to a chaintree did by creating a pass phrase key
- * from it an the user namespace
- */
-const didFromUsername = async (username: string) => {
-    const userKey = await publicUserKey(username)
-    return await Tupelo.ecdsaPubkeyToAddress(userKey.publicKey)
 }
 
 /**
  * Convert a username-password pair into a secure ecdsa key pair for owning
  * arbitrary chaintrees.
  */
-const securePasswordKey = async (username: string, password: string) => {
+export const securePasswordKey = async (username: string, password: string) => {
     return EcdsaKey.passPhraseKey(Buffer.from(password), Buffer.from(username))
 }
 
 /**
- * Convert a username-password pair to a chaintree did by creating a secure pass
- * phrase key from the pairing
+ * When given a public-private key pair, returns the did of a chaintree created
+ * by that pairing
  */
-const usernamePasswordToDid = async (username: string, password: string) => {
-    const userPassKey = await securePasswordKey(username, password)
-    return await Tupelo.ecdsaPubkeyToAddress(userPassKey.publicKey)
+const didFromKey = async (key: EcdsaKey) => {
+    return await Tupelo.ecdsaPubkeyToAddress(key.publicKey)
 }
 
 /**
@@ -53,7 +43,8 @@ const usernamePasswordToDid = async (username: string, password: string) => {
  */
 export const findUserTree = async (username: string) => {
     const c = await getAppCommunity()
-    const did = await didFromUsername(username)
+    const insecureKey = await publicUserKey(username)
+    const did = await didFromKey(insecureKey)
 
     let tip
     let tree: ChainTree | undefined = undefined
@@ -88,7 +79,7 @@ export const register = async (username: string, password: string) => {
 
     const insecureKey = await publicUserKey(username)
     const secureKey = await securePasswordKey(username, password)
-    const secureKeyAddress = await usernamePasswordToDid(username, password)
+    const secureKeyAddress = await didFromKey(secureKey)
 
     log("creating user chaintree")
     const userTree = await ChainTree.newEmptyTree(c.blockservice, insecureKey)
