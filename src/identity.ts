@@ -1,4 +1,5 @@
-import debug from "debug";
+import { debug } from "debug";
+import { appDataPrefix } from "./data"
 import { ChainTree, EcdsaKey, setDataTransaction, setOwnershipTransaction, Tupelo } from "tupelo-wasm-sdk";
 import { getAppCommunity, txsWithCommunityWait } from "./appcommunity";
 
@@ -9,7 +10,7 @@ const userNamespace = Buffer.from("decentratweetUsers")
 /**
  * The path within the user ChainTree where decentratweet stores the username
  */
-export const usernamePath = "/_decentratweet/username"
+export const usernamePath = appDataPrefix + "/username"
 
 /**
  * Generates a public/private keypair from an *insecure* passphrase (username).
