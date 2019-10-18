@@ -17,7 +17,7 @@ export const usernamePath = "/_decentratweet/username"
  * argument. The very first thing you do with the ChainTree should be to
  * ChangeOwner @param username - the username
  */
-export const insecureUsernameKey = async (username: string) => {
+const insecureUsernameKey = async (username: string) => {
     return EcdsaKey.passPhraseKey(Buffer.from(username), userNamespace)
 }
 
@@ -25,7 +25,7 @@ export const insecureUsernameKey = async (username: string) => {
  * Convert a username-password pair into a secure ecdsa key pair for owning
  * arbitrary chaintrees.
  */
-export const securePasswordKey = async (username: string, password: string) => {
+const securePasswordKey = async (username: string, password: string) => {
     return EcdsaKey.passPhraseKey(Buffer.from(password), Buffer.from(username))
 }
 
@@ -33,15 +33,15 @@ export const securePasswordKey = async (username: string, password: string) => {
  * When given a public-private key pair, returns the did of a chaintree created
  * by that pairing
  */
-export const didFromKey = async (key: EcdsaKey) => {
+const didFromKey = async (key: EcdsaKey) => {
     return await Tupelo.ecdsaPubkeyToAddress(key.publicKey)
 }
 
 /**
- * Looks up the user chaintree for the given username, returning it if it
- * exists.
+ * Looks up the user account chaintree for the given username, returning it if
+ * it exists.
  */
-export const findUserTree = async (username: string) => {
+export const findUserAccount = async (username: string) => {
     const c = await getAppCommunity()
     const insecureKey = await insecureUsernameKey(username)
     const did = await didFromKey(insecureKey)
@@ -68,9 +68,27 @@ export const findUserTree = async (username: string) => {
 };
 
 /**
- * Registers a username-password pair by creating a new chaintree corresponding
- * to the username, and transferring ownership to the secure key pair
- * corresponding to the username-password pair.
+ * Verifies that the secure password key generated with the provided username
+ * and password matches one of the owner keys for the provided chaintree.
+ */
+export const verifyAccount = async (username: string, password: string, userTree: ChainTree) => {
+    let secureKey = await securePasswordKey(username, password)
+    let secureAddr = await didFromKey(secureKey)
+    let resolveResp = await userTree.resolve("tree/_tupelo/authentications")
+    let auths: string[] = resolveResp.value
+    if (auths.includes(secureAddr)) {
+        userTree.key = secureKey
+
+        return true
+    } else {
+        return false
+    }
+}
+
+/**
+ * Registers a username-password pair by creating a new account chaintree
+ * corresponding to the username, and transferring ownership to the secure key
+ * pair corresponding to the username-password pair.
  *
  * Returns a handle for the created * chaintree
  */
@@ -95,4 +113,6 @@ export const register = async (username: string, password: string) => {
     ])
 
     userTree.key = secureKey
+
+    return userTree
 }

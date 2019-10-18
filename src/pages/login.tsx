@@ -2,9 +2,8 @@ import { debug } from "debug";
 import React, { useReducer, useState, useContext } from "react";
 import { RouteProps, Redirect } from "react-router";
 import { Columns, Heading, Form, Icon, Loader, Button } from "react-bulma-components";
-import { ChainTree, setOwnershipTransaction, setDataTransaction } from 'tupelo-wasm-sdk';
-import { getAppCommunity, txsWithCommunityWait } from "../appcommunity";
-import { didFromKey, findUserTree, insecureUsernameKey, securePasswordKey, usernamePath } from "../identity";
+import { ChainTree } from 'tupelo-wasm-sdk';
+import { findUserAccount, verifyAccount, register } from "../identity";
 import { StoreContext, AppActions, IAppLogin } from '../state/store'
 
 const log = debug("loginPage")
@@ -64,8 +63,8 @@ const checkUsername = (state: ILoginState, dispatch: Function) => {
       return //nothing to do on an empty username
     }
 
-    log("checking if ", username, " is available.")
-    let tree = await findUserTree(username)
+    log("looking up account for: ", username)
+    let tree = await findUserAccount(username)
 
     log("dispatching userTree event")
     dispatch({
@@ -144,7 +143,6 @@ function PasswordField({ name, value, onChange, error }: { name: string, value: 
   )
 }
 
-// the elements at the bottom of a login form
 function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatch: Function, onLogin: Function }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -157,12 +155,7 @@ function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatc
     const tree = state.userTree
     const username = state.username
 
-    let secureKey = await securePasswordKey(username, password)
-    let secureAddr = await didFromKey(secureKey)
-    let resolveResp = await tree.resolve("tree/_tupelo/authentications")
-    let auths: string[] = resolveResp.value
-    if (auths.includes(secureAddr)) {
-      tree.key = secureKey
+    if (verifyAccount(username, password, tree)) {
       onLogin(state.userTree)
     } else {
       setError("invalid password")
@@ -177,7 +170,6 @@ function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatc
   )
 }
 
-// the elements at the bottom of a login form
 function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatch: Function, onLogin: Function }) {
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -195,23 +187,9 @@ function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, disp
     dispatch({ type: Actions.registering })
     const doRegister = async () => {
       const username = state.username
-      const insecureKey = await insecureUsernameKey(username)
+      const userTree = register(username, password)
 
-      const secureKey = await securePasswordKey(username, password)
-      const secureKeyAddress = await didFromKey(secureKey)
-
-      const community = await getAppCommunity()
-      const tree = await ChainTree.newEmptyTree(community.blockservice, insecureKey)
-
-      log("playing transactions")
-      await txsWithCommunityWait(tree, [
-        // Set the ownership of the chaintree to our secure key (thus owning the username)
-        setOwnershipTransaction([secureKeyAddress]),
-        // Cache the username inside of the chaintree for easier access later
-        setDataTransaction(usernamePath, username),
-      ])
-      tree.key = secureKey
-      onLogin(tree)
+      onLogin(userTree)
     }
     doRegister()
   }
@@ -246,7 +224,7 @@ export function LoginForm(props: RouteProps) {
     doRedirect(true)
   }
 
-  let { from } = (props.location && props.location.state) ? props.location.state : { from: { pathname: "/wallet" } };
+  let { from } = (props.location && props.location.state) ? props.location.state : { from: { pathname: "/tweets" } };
 
   if (redirect) {
     return (
