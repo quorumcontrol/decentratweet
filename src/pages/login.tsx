@@ -258,8 +258,8 @@ export function LoginForm(props: RouteProps) {
     <div>
       <Columns className="is-desktop">
         <Columns.Column size={"half"}>
-          <Heading className="animated flipInX fast">Hello.</Heading>
-          <Heading subtitle>Find or create your wallet.</Heading>
+          <Heading className="animated flipInX fast">Welcome to Decentratweet!</Heading>
+          <Heading subtitle>Find or create your decentraccount.</Heading>
         </Columns.Column>
       </Columns>
 
