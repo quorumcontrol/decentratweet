@@ -1,11 +1,12 @@
-import React, { useContext } from 'react';
-import 'react-bulma-components/dist/react-bulma-components.min.css';
-import './App.scss';
-import { Navbar, Container, Loader, Columns, Section } from 'react-bulma-components'
-import { LoginForm } from './pages/login';
-import { StoreProvider, StoreContext } from './state/store';
+import React, { useContext } from "react";
+import "react-bulma-components/dist/react-bulma-components.min.css";
+import "./App.scss";
+import { Navbar, Container, Loader, Columns, Section } from "react-bulma-components"
+import { StoreProvider, StoreContext } from "./state/store";
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
-import { UserMessageList } from './components/messagelist'
+import { UserMessageList } from "./components/messagelist"
+import { LoginForm } from "./pages/login";
+import { Tweets } from "./pages/tweets"
 
 const Routing = () => {
   const [globalState] = useContext(StoreContext)
@@ -24,6 +25,9 @@ const Routing = () => {
           <Switch>
             <Route path="/login">
               <LoginForm />
+            </Route>
+            <Route path="/tweets">
+              <Tweets />
             </Route>
             <Route>
               <LoginForm />

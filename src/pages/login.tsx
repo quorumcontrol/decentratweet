@@ -2,9 +2,9 @@ import { debug } from "debug";
 import React, { useReducer, useState, useContext } from "react";
 import { RouteProps, Redirect } from "react-router";
 import { Columns, Heading, Form, Icon, Loader, Button } from "react-bulma-components";
-import { ChainTree } from 'tupelo-wasm-sdk';
+import { ChainTree } from "tupelo-wasm-sdk";
 import { findUserAccount, verifyAccount, register } from "../identity";
-import { StoreContext, AppActions, IAppLogin } from '../state/store'
+import { StoreContext, AppActions, IAppLogin } from "../state/store"
 
 const log = debug("loginPage")
 
@@ -48,9 +48,9 @@ interface IUserTree extends ILoginActions {
 
 const initialState = {
   loading: false,
-  username: '',
-  password: '',
-  loadingText: '',
+  username: "",
+  password: "",
+  loadingText: "",
 }
 
 
@@ -86,7 +86,7 @@ function reducer(state: ILoginState, action: ILoginActions) {
     case Actions.loginFormType:
       const username = (action as IUsernameType).username
       checkUsername(state, (action as IUsernameType).dispatch)
-      return { ...state, loading: true, loginText: 'Checking for username availability', username: username }
+      return { ...state, loading: true, loginText: "Checking for username availability", username: username }
     case Actions.userTree:
       const act = action as IUserTree
       log("user tree received: ", act.username, " state: ", state.username)
@@ -95,13 +95,13 @@ function reducer(state: ILoginState, action: ILoginActions) {
         checkUsername(state, act.dispatch)
         return state // don't update anything yet
       }
-      return { ...state, loading: false, loadingText: '', userTree: (action as IUserTree).tree }
+      return { ...state, loading: false, loadingText: "", userTree: (action as IUserTree).tree }
     case Actions.passwordFormType:
       return { ...state, password: (action as IPasswordType).password }
     case Actions.registering:
-      return { ...state, loading: true, loadingText: 'Registering your user' }
+      return { ...state, loading: true, loadingText: "Registering your user" }
     case Actions.loggingIn:
-      return { ...state, loading: true, loadingText: 'Logging in' }
+      return { ...state, loading: true, loadingText: "Logging in" }
     default:
       throw new Error("unkown type: " + action.type)
   }
@@ -144,8 +144,8 @@ function PasswordField({ name, value, onChange, error }: { name: string, value: 
 }
 
 function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatch: Function, onLogin: Function }) {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
   const handleSubmit = async () => {
     if (state.userTree === undefined) {
@@ -164,16 +164,16 @@ function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatc
 
   return (
     <div>
-      <PasswordField error={error} name="Password" value={password} onChange={(evt: React.ChangeEvent<HTMLInputElement>) => { setError(''); setPassword(evt.target.value) }} />
+      <PasswordField error={error} name="Password" value={password} onChange={(evt: React.ChangeEvent<HTMLInputElement>) => { setError(""); setPassword(evt.target.value) }} />
       <Button onClick={handleSubmit}>Login</Button>
     </div>
   )
 }
 
 function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatch: Function, onLogin: Function }) {
-  const [password, setPassword] = useState('')
-  const [passwordConfirm, setPasswordConfirm] = useState('')
-  const [error, setError] = useState('')
+  const [password, setPassword] = useState("")
+  const [passwordConfirm, setPasswordConfirm] = useState("")
+  const [error, setError] = useState("")
 
   const isConfirmed = () => {
     return password === passwordConfirm
@@ -181,13 +181,13 @@ function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, disp
 
   const handleSubmit = () => {
     if (!isConfirmed()) {
-      setError('Passwords do not match')
+      setError("Passwords do not match")
       return // do nothing here
     }
     dispatch({ type: Actions.registering })
     const doRegister = async () => {
       const username = state.username
-      const userTree = register(username, password)
+      const userTree = await register(username, password)
 
       onLogin(userTree)
     }
@@ -196,8 +196,8 @@ function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, disp
 
   return (
     <div>
-      <PasswordField error={error} name="Password" value={password} onChange={(evt: React.ChangeEvent<HTMLInputElement>) => { setError(''); setPassword(evt.target.value) }} />
-      <PasswordField error={error} name="Confirm Password" value={passwordConfirm} onChange={(evt: React.ChangeEvent<HTMLInputElement>) => { setError(''); setPasswordConfirm(evt.target.value) }} />
+      <PasswordField error={error} name="Password" value={password} onChange={(evt: React.ChangeEvent<HTMLInputElement>) => { setError(""); setPassword(evt.target.value) }} />
+      <PasswordField error={error} name="Confirm Password" value={passwordConfirm} onChange={(evt: React.ChangeEvent<HTMLInputElement>) => { setError(""); setPasswordConfirm(evt.target.value) }} />
       <Button onClick={handleSubmit}>Register</Button>
     </div>
   )
