@@ -35,7 +35,7 @@ const securePasswordKey = async (username: string, password: string) => {
  * by that pairing
  */
 const didFromKey = async (key: EcdsaKey) => {
-    return await Tupelo.ecdsaPubkeyToAddress(key.publicKey)
+    return await Tupelo.ecdsaPubkeyToDid(key.publicKey)
 }
 
 /**
