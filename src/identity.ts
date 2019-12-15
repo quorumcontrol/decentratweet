@@ -80,9 +80,9 @@ export const verifyAccount = async (username: string, password: string, userTree
     if (auths.includes(secureAddr)) {
         userTree.key = secureKey
 
-        return true
+        return [true, userTree]
     } else {
-        return false
+        return [false, null]
     }
 }
 
@@ -116,4 +116,17 @@ export const register = async (username: string, password: string) => {
     userTree.key = secureKey
 
     return userTree
+}
+
+/**
+ * Find the username from the given user account ChainTree
+ */
+export const resolveUsername = async (tree: ChainTree) => {
+    log("fetching username")
+    const usernameResp = await tree.resolveData(usernamePath)
+    if (usernameResp.remainderPath.length && usernameResp.remainderPath.length > 0) {
+        return ""
+    } else {
+        return usernameResp.value
+    }
 }

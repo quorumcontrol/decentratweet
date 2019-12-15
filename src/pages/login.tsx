@@ -155,8 +155,9 @@ function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatc
     const tree = state.userTree
     const username = state.username
 
-    if (verifyAccount(username, password, tree)) {
-      onLogin(state.userTree)
+    const [verified, verTree] = await verifyAccount(username, password, tree)
+    if (verified) {
+      onLogin(verTree)
     } else {
       setError("invalid password")
     }

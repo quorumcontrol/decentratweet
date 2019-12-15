@@ -1,6 +1,7 @@
 import { debug } from "debug";
 import { appDataPrefix } from "./data"
 import { ChainTree, setDataTransaction } from "tupelo-wasm-sdk";
+import { resolveUsername } from "./identity"
 import { txsWithCommunityWait } from "./appcommunity";
 
 const log = debug("tweet")
@@ -10,6 +11,11 @@ const log = debug("tweet")
  * their tweets and tweet metadata.
  */
 const tweetPrefix = appDataPrefix + "/tweets"
+
+/**
+ * The path of the array of followed user array
+ */
+const followedPath = appDataPrefix + "/followed"
 
 /**
  * The path within the user's ChainTree that stores the number of tweets they've
@@ -70,4 +76,66 @@ export const saveTweet = async (userTree: ChainTree, msg: string) => {
 
     log("playing tweet transaction onto user tree")
     await txsWithCommunityWait(userTree, tweetBlock)
+}
+
+const resolveTweet = async (num: number, tree: ChainTree) => {
+    const path = tweetPath(num)
+    const tweetResp = await tree.resolveData(path)
+    if (tweetResp.remainderPath.length && tweetResp.remainderPath.length > 0) {
+        return null
+    } else {
+        return tweetResp.value
+    }
+}
+
+/**
+ * Fetch all the tweets in a user chaintree, returning an array of tweet objects
+ * (including the username)
+ */
+export const readTweets = async (tree: ChainTree) => {
+    const username = await resolveUsername(tree)
+    if (username === "") {
+        return []
+    }
+
+    const count = await tweetCount(tree)
+    if (count === 0) {
+        return []
+    }
+
+    let tweets = []
+    for (let i = 0; i < count; i++) {
+        const tweet = await resolveTweet(i, tree)
+        if (tweet !== null) {
+            tweets.push({
+                username: username,
+                message: tweet.message,
+                time: tweet.time
+            })
+        }
+    }
+
+    return tweets
+}
+
+export const followed = async (userTree: ChainTree) => {
+    log("fetching the current followed list")
+    const followedResp = await userTree.resolveData(followedPath)
+    if (followedResp.remainderPath.length && followedResp.remainderPath.length > 0) {
+        return []
+    } else {
+        return followedResp.value
+    }
+}
+
+/**
+ * Follow another user's tweets
+ */
+export const follow = async (userTree: ChainTree, followedUser: string) => {
+    const currentFollowed = await followed(userTree)
+
+    currentFollowed.push(followedUser)
+    const newFollowedTx = setDataTransaction(followedPath, currentFollowed)
+
+    await txsWithCommunityWait(userTree, [newFollowedTx])
 }
