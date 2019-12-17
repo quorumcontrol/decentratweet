@@ -10,7 +10,9 @@ let _appPromise: Promise<Community>
 const devCommunityConfig = `
 id = "tupelolocal"
 BootstrapAddresses = [
+    # "/ip4/172.16.247.10/tcp/34001/ipfs/16Uiu2HAm3TGSEKEjagcCojSJeaT5rypaeJMKejijvYSnAjviWwV5",
     "/ip4/127.0.0.1/tcp/34001/ipfs/16Uiu2HAm3TGSEKEjagcCojSJeaT5rypaeJMKejijvYSnAjviWwV5",
+    # "/ip4/172.16.247.11/tcp/50000/ws/ipfs/16Uiu2HAm4hjC7zZTSN5KAp187vn52bZMsC8VaVdtrci7HD4aZcU7",
     "/ip4/127.0.0.1/tcp/50000/ws/ipfs/16Uiu2HAm4hjC7zZTSN5KAp187vn52bZMsC8VaVdtrci7HD4aZcU7",
 ]
 [[signers]]
@@ -23,8 +25,7 @@ DestKeyHex = "0x0438b196bddb9c3ec395b8ccb07bdab44ec768c084e7141b09ac5638d47fffbd
 
 [[signers]]
 VerKeyHex = "0x88aefad94805db01cacaf190f47bc9e40f584b5085c651da168ac4034d570b4750bf7b23803d204e483e407a5ca34ee7f7a434733346451cf3f5d26c0d11e5ac45398a03fbba2d3b0dfc21cdf14615430cea394bd9423d8527eaa82a96aa6d20655724d99770ee3488b6537d6be143b84b21ad5ee12c190048757fe453313fd2"
-DestKeyHex = "0x0468924bd1341b5cec1fed888aaf1e3caa94e7d0f13d4f4573b01b296374b9e710a58a7b40e7161c0bcf7fd41832441ca21076f3846e854c8d8c640f2469a552b1"
-`
+DestKeyHex = "0x0468924bd1341b5cec1fed888aaf1e3caa94e7d0f13d4f4573b01b296374b9e710a58a7b40e7161c0bcf7fd41832441ca21076f3846e854c8d8c640f2469a552b1"`
 
 /**
  * Return the community instance to be used by all modules of the application,
@@ -105,7 +106,7 @@ export async function txsWithCommunityWait(tree: ChainTree, txs: Transaction[]) 
     if (sig === undefined) {
         throw new Error("undefined sig from response")
     }
-    const respTip = new CID(Buffer.from(sig.getNewTip_asU8()))
+    const respTip = new CID(Buffer.from(res.getNewTip_asU8()))
 
     const treeId = await tree.id()
     if (treeId === null) {
