@@ -1,5 +1,6 @@
 import { debug } from "debug";
 import React, { createContext, useReducer, useEffect, useState } from "react";
+import { TweetFeed } from "../tweet"
 import { ChainTree, EcdsaKey } from "tupelo-wasm-sdk";
 import { getAppCommunity } from "../appcommunity";
 import { usernamePath } from "../identity"
@@ -28,6 +29,7 @@ interface IAppState {
   userTree?: ChainTree
   username?: string
   userDid?: string
+  tweetFeed?: TweetFeed
   loading: number
   messages: IAppMessage[]
 }
@@ -60,6 +62,7 @@ export interface IAppLogin extends IAppAction {
   userTree: ChainTree
   username: string
   did: string
+  feed: TweetFeed
 }
 
 export interface IAppRemoveMessage extends IAppAction {
@@ -97,7 +100,7 @@ function reducer(state: IAppState, action: IAppAction) {
       return { ...state, loading: state.loading - 1 }
     case AppActions.login:
       act = action as IAppLogin
-      return { ...state, userTree: act.userTree, username: act.username, did: act.did }
+      return { ...state, userTree: act.userTree, username: act.username, did: act.did, feed: act.tweetFeed }
     case AppActions.setDID:
       return { ...state, userDid: (action as IAppSetDid).did }
     case AppActions.setUsername:

@@ -1,10 +1,47 @@
 import { debug } from "debug";
 import { appDataPrefix } from "./data"
 import { ChainTree, setDataTransaction } from "tupelo-wasm-sdk";
+import OrbitDB from "orbit-db"
+import FeedStore from "orbit-db-feedstore"
 import { resolveUsername } from "./identity"
 import { txsWithCommunityWait } from "./appcommunity";
 
 const log = debug("tweet")
+
+const feedName = "tweets"
+
+/**
+ * Object representing a tweet
+ */
+export interface Tweet {
+    message: string,
+    time: Date
+}
+
+/**
+ * A feed of a user's tweets
+ */
+export class TweetFeed {
+    feed: FeedStore<Tweet>
+
+    constructor(feed: FeedStore<Tweet>) {
+        this.feed = feed
+    }
+
+    static async create(db: OrbitDB) {
+        log("Creating tweet feed")
+        const f = await db.feed<Tweet>(feedName)
+
+        return new TweetFeed(f)
+    }
+
+    async publish(msg: string) {
+        await this.feed.add({
+            message: msg,
+            time: Date.now()
+        })
+    }
+}
 
 /**
  * The prefix of paths within the user's ChainTree where the application stores
@@ -41,41 +78,6 @@ const tweetCount = async (userTree: ChainTree) => {
  */
 const tweetPath = (count: number) => {
     return tweetPrefix + "/" + count
-}
-
-/**
- * Return an object representing a tweet and its metadata
- */
-const newTweet = (msg: string, ts: number) => {
-    return {
-        message: msg,
-        time: ts
-    }
-}
-
-/**
- * Record a tweet in the provided ChainTree
- */
-export const saveTweet = async (userTree: ChainTree, msg: string) => {
-    // record the current timestamp to store with the tweet
-    const ts = Date.now()
-
-    // create a transaction to increment the current tweet count
-    const currentCount = await tweetCount(userTree)
-    const newCount = currentCount + 1
-    const incrementCountTx = setDataTransaction(countPath, newCount)
-
-    // create a transaction to record the tweet
-    const tweet = newTweet(msg, ts)
-    const path = tweetPath(newCount)
-    const tweetTx = setDataTransaction(path, tweet)
-
-    // build the block of transactions to both increment the tweet count and
-    // save the new tweet
-    const tweetBlock = [incrementCountTx, tweetTx]
-
-    log("playing tweet transaction onto user tree")
-    await txsWithCommunityWait(userTree, tweetBlock)
 }
 
 const resolveTweet = async (num: number, tree: ChainTree) => {

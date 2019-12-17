@@ -1,9 +1,8 @@
 import React, { useState } from "react"
 import { Modal, Form, Button, Media, Content, Loader } from "react-bulma-components"
-import { ChainTree } from "tupelo-wasm-sdk"
-import { saveTweet } from "../tweet"
+import { TweetFeed } from "../tweet"
 
-export function TweetComposer({ show, onClose, userTree }: { userTree: ChainTree, show: boolean, onClose: (() => void) }) {
+export function TweetComposer({ show, onClose, feed }: { feed: TweetFeed, show: boolean, onClose: (() => void) }) {
   const [state, setState] = useState({
     loading: false,
     message: ""
@@ -16,7 +15,7 @@ export function TweetComposer({ show, onClose, userTree }: { userTree: ChainTree
   const handleSubmit = () => {
     setState({ ...state, loading: true })
     const doAsync = async () => {
-      await saveTweet(userTree, state.message)
+      await feed.publish(state.message)
       setState({ ...state, loading: false, message: "" })
       onClose()
     }
