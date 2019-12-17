@@ -1662,10 +1662,24 @@
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
   integrity sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
 
+"@types/events@*":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/events/-/events-3.0.0.tgz#2862f3f58a9a7f7c3e78d79f130dd4d71c25c2a7"
+  integrity sha512-EaObqwIvayI5a8dCzhFrjKzVwKLxjoG9T6Ppd5CEo07LRKfQ8Yokw54r5+Wq7FaBQ+yXRvQAYPrHwya1/UFt9g==
+
 "@types/events@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-1.2.0.tgz#81a6731ce4df43619e5c8c945383b3e62a89ea86"
   integrity sha512-KEIlhXnIutzKwRbQkGWb/I4HFqBuUykAdHgDED6xqwXJfONCjF5VoE0cXEiurh3XauygxzeDzgtXUqvLkxFzzA==
+
+"@types/glob@*":
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/@types/glob/-/glob-7.1.1.tgz#aa59a1c6e3fbc421e07ccd31a944c30eba521575"
+  integrity sha512-1Bh06cbWJUHMC97acuD6UMG29nMt0Aqz1vF3guLfG+kHHJhy3AyohZFFxYk2f7Q1SQIrNwvncxAE0N/9s70F2w==
+  dependencies:
+    "@types/events" "*"
+    "@types/minimatch" "*"
+    "@types/node" "*"
 
 "@types/google-protobuf@^3.7.1":
   version "3.7.2"
@@ -1722,6 +1736,11 @@
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@types/long/-/long-4.0.0.tgz#719551d2352d301ac8b81db732acb6bdc28dbdef"
   integrity sha512-1w52Nyx4Gq47uuu0EVcsHBxZFJgurQ+rTKS3qMHxR1GY2T8c2AJYd6vZoZ9q1rupaDjU0yT+Jc2XTyXkjeMA+Q==
+
+"@types/minimatch@*":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
+  integrity sha512-tHq6qdbT9U1IRSGf14CL0pUlULksvY9OZ+5eEgl1N7t+OA3tGvNpxJCzuKQlsNgCVwbAs670L1vcVQi8j9HjnA==
 
 "@types/node@*":
   version "12.12.18"
@@ -1808,6 +1827,14 @@
   dependencies:
     "@types/prop-types" "*"
     csstype "^2.2.0"
+
+"@types/rimraf@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@types/rimraf/-/rimraf-2.0.3.tgz#0199a46af106729ba14213fda7b981278d8c84f2"
+  integrity sha512-dZfyfL/u9l/oi984hEXdmAjX3JHry7TLWw43u1HQ8HhPv6KtfxnrZ3T/bleJ0GEvnk9t5sM7eePkgMqz3yBcGg==
+  dependencies:
+    "@types/glob" "*"
+    "@types/node" "*"
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
@@ -9510,7 +9537,7 @@ libp2p-tcp@^0.13.0, libp2p-tcp@^0.13.2, libp2p-tcp@~0.13.0:
     once "^1.4.0"
     stream-to-pull-stream "^1.7.3"
 
-libp2p-webrtc-star@~0.16.0:
+libp2p-webrtc-star@^0.16.1, libp2p-webrtc-star@~0.16.0:
   version "0.16.1"
   resolved "https://registry.yarnpkg.com/libp2p-webrtc-star/-/libp2p-webrtc-star-0.16.1.tgz#d160a157d033f1ad915cf460776a1ca32f352b75"
   integrity sha512-TLQ/Qhfx367kETt2pz2ejzVMB01PQjkBqxP+p+PD84N+JuFg3HVQw8jwXdiXexg/gKNMH+WwqVeWiKv/mVrCNA==
@@ -11238,6 +11265,20 @@ orbit-db@^0.23.0, "orbit-db@git+https://github.com/orbitdb/orbit-db.git":
     orbit-db-pubsub "~0.5.5"
     orbit-db-storage-adapter "~0.5.3"
     orbit-db-store "~3.0.0"
+
+orbitdb-tupelo@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/orbitdb-tupelo/-/orbitdb-tupelo-0.0.3.tgz#c987d55acc542279877c894a68df3b8316718b5f"
+  integrity sha512-bkdjA5BOY9gFiweCPtQAqqz5+lCbr48pdSiFZ5dqB9E7cq7ZEn/TCt3fManrYiu/rn64U7cYKAXW9ydKZm5l8w==
+  dependencies:
+    "@types/orbit-db" "git+https://github.com/orbitdb/orbit-db-types.git"
+    "@types/rimraf" "^2.0.3"
+    ipfs "^0.40.0"
+    libp2p-webrtc-star "^0.16.1"
+    orbit-db "^0.23.0"
+    tupelo-messages "^2.0.2"
+    tupelo-wasm-sdk next
+    wrtc "^0.4.2"
 
 original@^1.0.0:
   version "1.0.2"
@@ -15134,20 +15175,20 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
-tupelo-messages@0.5.0-rc6:
-  version "0.5.0-rc6"
-  resolved "https://registry.yarnpkg.com/tupelo-messages/-/tupelo-messages-0.5.0-rc6.tgz#a7467bfc5b2f85138003f47815ac2c3b6c3cb6ea"
-  integrity sha512-45Zy0xe8fDHpR0MCG13lNicd/4FCXPMFWoM2X4Goo9I5/I2GdiXZdZHdOFd3aGpQF17zlj76307dM3swX2OPaw==
+tupelo-messages@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/tupelo-messages/-/tupelo-messages-2.0.2.tgz#1d1f85f71321b72aa18cc2d169a4e42a9e056e81"
+  integrity sha512-5LQ8UyHHMcXlpis5P1xqBfBBy/gAYzt6qLTwjx3NGRvWb6vv1MQ76tKNZ9cUXmHXx6V6vsfqjoMoPqAUAIp7pA==
   dependencies:
     "@types/google-protobuf" "^3.7.1"
     "@types/protobufjs" "^6.0.0"
     google-protobuf "~3.7.1"
     grpc "^1.23.3"
 
-tupelo-wasm-sdk@^0.5.14:
-  version "0.5.14"
-  resolved "https://registry.yarnpkg.com/tupelo-wasm-sdk/-/tupelo-wasm-sdk-0.5.14.tgz#b3a8114c7c7f688b7372523a99e631686faa4289"
-  integrity sha512-0oYuC9lWJ+2FcwUyi8gmjPnuuin2qRbm+/NtsCLNWfArknGQXGpvm0xuNqeKrmPYFw8He5nRrBMeWwlg8mwgAA==
+tupelo-wasm-sdk@next:
+  version "2.0.1-pre"
+  resolved "https://registry.yarnpkg.com/tupelo-wasm-sdk/-/tupelo-wasm-sdk-2.0.1-pre.tgz#f225d615fe254ea251a42fc1381d57a3f7824544"
+  integrity sha512-Q2umyEbVvZ6/vk3CK2wE27hlJ8LxLiYwwMySO7RvXHlVK1zLcDIK2m+eXq6PNTU6JJSNiSLxe21mGT4jczW2xw==
   dependencies:
     "@types/debug" "^4.1.5"
     "@types/detect-node" "^2.0.0"
@@ -15182,7 +15223,7 @@ tupelo-wasm-sdk@^0.5.14:
     pull-mplex "^0.1.2"
     pull-ws "^3.3.2"
     toml "^3.0.0"
-    tupelo-messages "0.5.0-rc6"
+    tupelo-messages "^2.0.2"
     util "^0.12.1"
 
 tweetnacl@^0.14.3, tweetnacl@~0.14.0:
@@ -16051,6 +16092,15 @@ write@1.0.3:
   integrity sha512-/lg70HAjtkUgWPVZhZcm+T4hkL8Zbtp1nFNOn3lRrxnlv50SRBv7cR7RqR+GMsd3hUXy9hWBo4CHTbFTcOYwig==
   dependencies:
     mkdirp "^0.5.1"
+
+wrtc@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/wrtc/-/wrtc-0.4.2.tgz#feeb829709dac17139b49f7a18f57f4e98300a6f"
+  integrity sha512-IaXogllhkd3dHKrZxzQKXmKjqsR35X9XIjp1ElimieZuaPgDCPEbIg/DOwzGTT4bdKqmB8FjPgau2RNMFTGvHQ==
+  dependencies:
+    node-pre-gyp "^0.13.0"
+  optionalDependencies:
+    domexception "^1.0.1"
 
 ws@^1.1.0:
   version "1.1.5"
