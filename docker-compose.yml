@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  tupelo:
+    image: quorumcontrol/tupelo-local:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - tupelo-local:/tupelo-local
+    environment:
+      TUPELO_VERSION: ${TUPELO_VERSION:-master}
+      COMMUNITY_VERSION: ${COMMUNITY_VERSION:-master}
+    logging:
+      driver: none
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.247.0/24
+
+volumes:
+  tupelo-local:
