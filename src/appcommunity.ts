@@ -5,7 +5,7 @@ import { Transaction } from "tupelo-messages";
 
 const log = debug("appcommunity")
 
-let _appPromise: Promise<Community>
+let _appCommunityPromise: Promise<Community>
 
 const devCommunityConfig = `
 id = "tupelolocal"
@@ -34,10 +34,10 @@ DestKeyHex = "0x0468924bd1341b5cec1fed888aaf1e3caa94e7d0f13d4f4573b01b296374b9e7
  */
 export function getAppCommunity(): Promise<Community> {
     log("fetching app community")
-    if (_appPromise !== undefined) {
-        return _appPromise
+    if (_appCommunityPromise !== undefined) {
+        return _appCommunityPromise
     }
-    _appPromise = new Promise(async (resolve, reject) => {
+    _appCommunityPromise = new Promise(async (resolve, reject) => {
         let c: Community
         switch (process.env.NODE_ENV) {
             case "production":
@@ -51,7 +51,7 @@ export function getAppCommunity(): Promise<Community> {
         }
         resolve(c)
     })
-    return _appPromise
+    return _appCommunityPromise
 }
 
 /**
