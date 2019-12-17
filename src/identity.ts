@@ -98,7 +98,7 @@ export const register = async (username: string, password: string) => {
 
     const insecureKey = await insecureUsernameKey(username)
     const secureKey = await securePasswordKey(username, password)
-    const secureKeyAddress = await didFromKey(secureKey)
+    const secureKeyAddress = await secureKey.address()
 
     log("creating user chaintree")
     const userTree = await ChainTree.newEmptyTree(c.blockservice, insecureKey)
