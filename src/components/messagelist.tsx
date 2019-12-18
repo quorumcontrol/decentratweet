@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { Message, Button, Container } from 'react-bulma-components';
 import { StoreContext, IAppMessage, AppActions, IAppRemoveMessage } from '../state/store';
+import { Tweet } from 'tweet';
 
 export function UserMessageList() {
   const [globalState] = useContext(StoreContext)
@@ -18,22 +19,22 @@ export function UserMessageList() {
   )
 }
 
-const MessageElement = ({ message }: { message: IAppMessage }) => {
+const MessageElement = ({ message }: { message: Tweet }) => {
   const [, globalDispatch] = useContext(StoreContext)
 
-  if (message.id === undefined) {
-    throw new Error("a message must have an id when it's in the list")
-  }
+  // if (message.id === undefined) {
+  //   throw new Error("a message must have an id when it's in the list")
+  // }
 
   return (
-    <li key={message.id}>
+    <li key={message.time.getTime()}>
       <Message color="info">
-        <Message.Header>
+        {/* <Message.Header>
           {message.title}
           <Button remove onClick={() => { globalDispatch({ type: AppActions.removeMessage, id: message.id } as IAppRemoveMessage) }} />
-        </Message.Header>
+        </Message.Header> */}
         <Message.Body style={{ whiteSpace: 'pre' }}>
-          {message.body}
+          {message.message}
         </Message.Body>
       </Message>
     </li>

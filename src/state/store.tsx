@@ -1,6 +1,6 @@
 import { debug } from "debug";
 import React, { createContext, useReducer, useEffect, useState } from "react";
-import { TweetFeed } from "../tweet"
+import { TweetFeed, Tweet } from "../tweet"
 import { ChainTree, EcdsaKey } from "tupelo-wasm-sdk";
 import { getAppCommunity } from "../appcommunity";
 import { usernamePath } from "../identity"
@@ -31,7 +31,7 @@ interface IAppState {
   userDid?: string
   tweetFeed?: TweetFeed
   loading: number
-  messages: IAppMessage[]
+  messages: Tweet[]
 }
 
 export enum AppActions {
@@ -110,22 +110,28 @@ function reducer(state: IAppState, action: IAppAction) {
       sessionStorage.removeItem('userKey')
       return { ...initialState, loading: 0 }
     case AppActions.message:
-      const msg = (action as IAppMessage).message
-      msg.id = (new Date()).toString() + "-" + msg.title + Math.random().toString()
-      return { ...state, messages: [...state.messages, msg] }
-    case AppActions.removeMessage:
-      const id = (action as IAppRemoveMessage).id
-      let index = -1;
-      for (var i = state.messages.length - 1; i >= 0; i--) {
-        if (state.messages[i].id === id) {
-          index = i
-          break;
-        }
+      const msg = (action as IAppMessage)
+      const tweet:Tweet = {
+        time: new Date(),
+        message: msg.body,
       }
-      if (index === -1) {
-        return state // nothing to do here
+      if (state.tweetFeed) {
+        state.tweetFeed.publish(tweet.message)
       }
-      return { ...state, messages: [...state.messages.slice(0, index), ...state.messages.slice(index + 1)] }
+      return { ...state, messages: [...state.messages, tweet] }
+    // case AppActions.removeMessage:
+    //   const id = (action as IAppRemoveMessage).id
+    //   let index = -1;
+    //   for (var i = state.messages.length - 1; i >= 0; i--) {
+    //     if (state.messages[i].id === id) {
+    //       index = i
+    //       break;
+    //     }
+    //   }
+    //   if (index === -1) {
+    //     return state // nothing to do here
+    //   }
+    //   return { ...state, messages: [...state.messages.slice(0, index), ...state.messages.slice(index + 1)] }
     default:
       throw new Error("unkown type: " + action.type)
   }

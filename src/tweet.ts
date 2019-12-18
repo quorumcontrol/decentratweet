@@ -49,6 +49,10 @@ export class TweetFeed {
         })
     }
 
+    close() {
+        return this.feed.close()
+    }
+
     address() {
         return this.feed.address
     }

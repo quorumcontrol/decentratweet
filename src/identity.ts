@@ -77,7 +77,7 @@ export const findUserAccount = async (username: string) => {
  */
 export const verifyAccount = async (username: string, password: string, userTree: ChainTree) => {
     let secureKey = await securePasswordKey(username, password)
-    let secureAddr = await didFromKey(secureKey)
+    let secureAddr = await secureKey.address()
     let resolveResp = await userTree.resolve("tree/_tupelo/authentications")
     let auths: string[] = resolveResp.value
     if (auths.includes(secureAddr)) {
@@ -111,6 +111,7 @@ export const register = async (username: string, password: string) => {
 
     log("creating user tweet feed")
     const feed = await TweetFeed.create(dbInstance)
+    feed.close() // close the feed now because login will open it
 
     log("transferring ownership of user chaintree and registering tweet feed")
     await txsWithCommunityWait(userTree, [
