@@ -4,6 +4,9 @@ import { Redirect, RouteProps } from 'react-router';
 import { StoreContext } from '../state/store';
 import { TweetComposer } from "../components/composer"
 import { Followed } from "../components/followed"
+import debug from 'debug'
+
+const log = debug("tweetPage")
 
 export function Tweets(props: RouteProps) {
   const [state, setState] = useState({
@@ -14,6 +17,7 @@ export function Tweets(props: RouteProps) {
   const [globalState] = useContext(StoreContext)
 
   if (!globalState.userTree || !globalState.tweetFeed) {
+    log("no tweetFeed or userTree, redirecting")
     return (
       <Redirect to={{
         pathname: "/login",

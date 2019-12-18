@@ -229,7 +229,7 @@ export function LoginForm(props: RouteProps) {
       userTree: tree,
       username: state.username,
       did: did,
-      feed: tweetFeed
+      tweetFeed: tweetFeed
     } as IAppLogin)
     doRedirect(true)
   }
@@ -237,6 +237,7 @@ export function LoginForm(props: RouteProps) {
   let { from } = (props.location && props.location.state) ? props.location.state : { from: { pathname: "/tweets" } };
 
   if (redirect) {
+    log("redirecting to: ", from)
     return (
       <Redirect to={from} />
     )

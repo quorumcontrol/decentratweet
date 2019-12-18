@@ -62,7 +62,7 @@ export interface IAppLogin extends IAppAction {
   userTree: ChainTree
   username: string
   did: string
-  feed: TweetFeed
+  tweetFeed: TweetFeed
 }
 
 export interface IAppRemoveMessage extends IAppAction {
@@ -100,7 +100,7 @@ function reducer(state: IAppState, action: IAppAction) {
       return { ...state, loading: state.loading - 1 }
     case AppActions.login:
       act = action as IAppLogin
-      return { ...state, userTree: act.userTree, username: act.username, did: act.did, feed: act.feed }
+      return { ...state, userTree: act.userTree, username: act.username, did: act.did, tweetFeed: act.tweetFeed }
     case AppActions.setDID:
       return { ...state, userDid: (action as IAppSetDid).did }
     case AppActions.setUsername:
