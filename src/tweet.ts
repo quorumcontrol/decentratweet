@@ -4,6 +4,8 @@ import { ChainTree, setDataTransaction } from "tupelo-wasm-sdk";
 import OrbitDB from "orbit-db"
 import FeedStore from "orbit-db-feedstore"
 import { txsWithCommunityWait } from "./appcommunity";
+import { EventEmitter } from "events";
+import { IAppInitialTweets, IAppMessage, AppActions } from "state/store";
 
 const log = debug("tweet")
 
@@ -18,14 +20,25 @@ export interface Tweet {
     time: Date
 }
 
+// interface feedIterator {
+//     next(): { value: LogEntry<Tweet>, done: boolean }
+// }
+
 /**
  * A feed of a user's tweets
  */
-export class TweetFeed {
+export class TweetFeed extends EventEmitter {
     feed: FeedStore<Tweet>
+    dispatch?:Function
+    last?:LogEntry<Tweet>
 
     constructor(feed: FeedStore<Tweet>) {
+        super()
+        console.log("feed")
         this.feed = feed
+        console.log("database ready: ", this.feed.iterator().collect())
+
+        this.feed.events.on('write', () => this.onWrite() )
     }
 
     static async create(db: OrbitDB) {
@@ -42,11 +55,42 @@ export class TweetFeed {
         return new TweetFeed(f)
     }
 
-    async publish(msg: string) {
-        await this.feed.add({
+    publish(msg: string) {
+        return this.feed.add({
             message: msg,
             time: Date.now()
         })
+    }
+
+    onWrite() {
+        log("onWrite")
+        let next = this.feed.iterator({reverse: true}).next()
+        this.last = next.value //TODO: is this right?
+        this.dispatchTweet(next.value.payload.value)
+    }
+
+    dispatchTweet(tweet:Tweet) {
+        if (!this.dispatch) {
+            log("no dispatch, returning")
+            return
+        }
+        log("dispatching")
+        this.dispatch({
+            type: AppActions.message,
+            body: tweet.message,
+        } as IAppMessage)
+    }
+
+    setDispatch(fn:Function) {
+        this.dispatch = fn
+        const iterator = this.feed.iterator({limit: -1})
+        let next = iterator.next()
+
+        while (next && !next.done) {
+            this.last = next.value
+            this.dispatchTweet(next.value.payload.value)
+            next = iterator.next()
+        } 
     }
 
     close() {

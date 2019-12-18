@@ -4,6 +4,7 @@ import OrbitDB from "orbit-db";
 import { TupeloIdentityProvider, TupeloIdentityProviderOptions } from "orbitdb-tupelo"
 import IPFS from "ipfs";
 import { ChainTree } from "tupelo-wasm-sdk";
+import { getAppCommunity } from "appcommunity";
 
 declare const window:any;
 
@@ -11,7 +12,7 @@ const log = debug("db")
 
 let _ipfsNodePromise: Promise<IPFS>
 let _orbitdbPromise: Promise<OrbitDB>
-
+TupeloIdentityProvider.community = getAppCommunity()
 Identities.addIdentityProvider(TupeloIdentityProvider)
 
 /**

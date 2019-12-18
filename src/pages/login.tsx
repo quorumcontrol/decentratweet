@@ -209,7 +209,7 @@ function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, disp
 
 export function LoginForm(props: RouteProps) {
   const [state, dispatch] = useReducer(reducer, initialState)
-  const [redirect, doRedirect] = useState(false)
+  const [globalState] = useContext(StoreContext)
 
   const [, globalDispatch] = useContext(StoreContext)
 
@@ -223,6 +223,7 @@ export function LoginForm(props: RouteProps) {
     const addressResponse = await tree.resolveData(feedAddressPath)
     log("addressResponse: ", addressResponse)
     const tweetFeed = await TweetFeed.open(db, addressResponse.value)
+    tweetFeed.setDispatch(globalDispatch)
 
     globalDispatch({
       type: AppActions.login,
@@ -231,13 +232,11 @@ export function LoginForm(props: RouteProps) {
       did: did,
       tweetFeed: tweetFeed
     } as IAppLogin)
-    doRedirect(true)
   }
 
   let { from } = (props.location && props.location.state) ? props.location.state : { from: { pathname: "/tweets" } };
 
-  if (redirect) {
-    log("redirecting to: ", from)
+  if (globalState.userTree) {
     return (
       <Redirect to={from} />
     )

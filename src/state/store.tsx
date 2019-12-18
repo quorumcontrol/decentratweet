@@ -4,6 +4,8 @@ import { TweetFeed, Tweet } from "../tweet"
 import { ChainTree, EcdsaKey } from "tupelo-wasm-sdk";
 import { getAppCommunity } from "../appcommunity";
 import { usernamePath } from "../identity"
+import { getOrbitInstance } from "db";
+import { feedAddressPath } from "data";
 
 const log = debug("stateStore")
 declare const Go: any;
@@ -43,6 +45,7 @@ export enum AppActions {
   message,
   logout,
   setUsername,
+  initialTweets,
 }
 
 export interface IAppAction {
@@ -73,6 +76,11 @@ export interface IAppRemoveMessage extends IAppAction {
 export interface IAppMessage extends IAppAction {
   type: AppActions.message,
   message: IAppMessage,
+}
+
+export interface IAppInitialTweets extends IAppAction {
+  type: AppActions.initialTweets,
+  tweets: Tweet[],
 }
 
 export interface IAppLogout extends IAppAction {
@@ -115,10 +123,9 @@ function reducer(state: IAppState, action: IAppAction) {
         time: new Date(),
         message: msg.body,
       }
-      if (state.tweetFeed) {
-        state.tweetFeed.publish(tweet.message)
-      }
       return { ...state, messages: [...state.messages, tweet] }
+    case AppActions.initialTweets:
+      return { ...state, messages: (action as IAppInitialTweets).tweets }
     // case AppActions.removeMessage:
     //   const id = (action as IAppRemoveMessage).id
     //   let index = -1;
@@ -186,11 +193,18 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
           const username = (await tree.resolveData(usernamePath)).value
           console.log('logging in from storage: ', username, ' did: ', did)
 
+          const db = await getOrbitInstance(tree)
+          const addressResponse = await tree.resolveData(feedAddressPath)
+          log("addressResponse: ", addressResponse)
+          const tweetFeed = await TweetFeed.open(db, addressResponse.value)
+          tweetFeed.setDispatch(dispatch)
+
           dispatch({
             type: AppActions.login,
             userTree: tree,
             did: did,
-            username: username
+            username: username,
+            tweetFeed: tweetFeed,
           } as IAppLogin)
 
           dispatch({

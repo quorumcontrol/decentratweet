@@ -7,6 +7,9 @@ const log = debug("appcommunity")
 
 let _appCommunityPromise: Promise<Community>
 
+declare const window:any;
+window.Community = Community
+
 const devCommunityConfig = `
 id = "tupelolocal"
 BootstrapAddresses = [
@@ -53,6 +56,7 @@ export function getAppCommunity(): Promise<Community> {
     })
     return _appCommunityPromise
 }
+getAppCommunity()
 
 /**
  * Returns a promise that resolves when the apps community instance updates the
