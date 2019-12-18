@@ -3,3 +3,8 @@
  * user's ChainTree.
  */
 export const appDataPrefix = "/_decentratweet"
+
+/**
+ * The path within a user chaintree to store the address of their tweet feed.
+ */
+export const feedAddressPath = appDataPrefix + "/feed_address"

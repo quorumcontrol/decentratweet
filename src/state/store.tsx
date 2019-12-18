@@ -100,7 +100,7 @@ function reducer(state: IAppState, action: IAppAction) {
       return { ...state, loading: state.loading - 1 }
     case AppActions.login:
       act = action as IAppLogin
-      return { ...state, userTree: act.userTree, username: act.username, did: act.did, feed: act.tweetFeed }
+      return { ...state, userTree: act.userTree, username: act.username, did: act.did, feed: act.feed }
     case AppActions.setDID:
       return { ...state, userDid: (action as IAppSetDid).did }
     case AppActions.setUsername:

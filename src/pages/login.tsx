@@ -5,6 +5,9 @@ import { Columns, Heading, Form, Icon, Loader, Button } from "react-bulma-compon
 import { ChainTree } from "tupelo-wasm-sdk";
 import { findUserAccount, verifyAccount, register } from "../identity";
 import { StoreContext, AppActions, IAppLogin } from "../state/store"
+import { TweetFeed } from "../tweet"
+import { getOrbitInstance } from "../db";
+import { feedAddressPath } from "../data";
 
 const log = debug("loginPage")
 
@@ -216,11 +219,16 @@ export function LoginForm(props: RouteProps) {
 
   const onLogin = async (tree: ChainTree) => {
     const did = await tree.id()
+    const db = await getOrbitInstance(tree)
+    const addressResponse = await tree.resolveData(feedAddressPath)
+    const tweetFeed = await TweetFeed.open(db, addressResponse.value)
+
     globalDispatch({
       type: AppActions.login,
       userTree: tree,
       username: state.username,
       did: did,
+      feed: tweetFeed
     } as IAppLogin)
     doRedirect(true)
   }

@@ -2,12 +2,10 @@ import { Community, ChainTree } from "tupelo-wasm-sdk";
 import CID from "cids";
 import debug from "debug";
 import { Transaction } from "tupelo-messages";
-import IPFS from "ipfs";
 
 const log = debug("appcommunity")
 
 let _appCommunityPromise: Promise<Community>
-let _ipfsNodePromise: Promise<IPFS>
 
 const devCommunityConfig = `
 id = "tupelolocal"
@@ -39,7 +37,7 @@ export function getAppCommunity(): Promise<Community> {
     if (_appCommunityPromise !== undefined) {
         return _appCommunityPromise
     }
-    _appCommunityPromise = new Promise(async (resolve, _) => {
+    _appCommunityPromise = new Promise(async (resolve) => {
         let c: Community
         switch (process.env.NODE_ENV) {
             case "production":
@@ -54,30 +52,6 @@ export function getAppCommunity(): Promise<Community> {
         resolve(c)
     })
     return _appCommunityPromise
-}
-
-/**
-* Returns the IPFS node for the application. This node is only created once and
-* stored for later use by subsequent callers of this function
-*/
-function getIpfsNode(): Promise<IPFS> {
-    log("fetching ipfs node")
-    if (_ipfsNodePromise == undefined) {
-        log("ipfs node doesn't exist. initializing new one")
-        _ipfsNodePromise = new Promise(async (resolve) => {
-            const ipfs = new IPFS({
-                repo: './ipfs',
-                EXPERIMENTAL: { pubsub: true },
-                config: {
-                    Bootstrap: [],
-                    Addresses: { Swarm: [] }
-                }
-            })
-            ipfs.on("ready", () => resolve(ipfs))
-        })
-    }
-
-    return _ipfsNodePromise
 }
 
 /**

@@ -2,6 +2,9 @@ import { debug } from "debug";
 import { appDataPrefix } from "./data"
 import { ChainTree, EcdsaKey, setDataTransaction, setOwnershipTransaction, Tupelo } from "tupelo-wasm-sdk";
 import { getAppCommunity, txsWithCommunityWait } from "./appcommunity";
+import { getOrbitInstance } from "./db";
+import { TweetFeed } from "./tweet";
+import { feedAddressPath } from "./data"
 
 const log = debug("identity")
 
@@ -103,7 +106,13 @@ export const register = async (username: string, password: string) => {
     log("creating user chaintree")
     const userTree = await ChainTree.newEmptyTree(c.blockservice, insecureKey)
 
-    log("transferring ownership of user chaintree")
+    log("fetching user database")
+    const dbInstance = await getOrbitInstance(userTree)
+
+    log("creating user tweet feed")
+    const feed = await TweetFeed.create(dbInstance)
+
+    log("transferring ownership of user chaintree and registering tweet feed")
     await txsWithCommunityWait(userTree, [
         // Set the ownership of the user chaintree to our secure key (thus
         // owning the username)
@@ -111,6 +120,9 @@ export const register = async (username: string, password: string) => {
 
         // Cache the username inside of the chaintree for easier access later
         setDataTransaction(usernamePath, username),
+
+        // Register the tweet feed with the user tree
+        setDataTransaction(feedAddressPath, feed.address())
     ])
 
     userTree.key = secureKey

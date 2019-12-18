@@ -13,7 +13,7 @@ export function Tweets(props: RouteProps) {
   })
   const [globalState] = useContext(StoreContext)
 
-  if (!globalState.userTree) {
+  if (!globalState.userTree || !globalState.tweetFeed) {
     return (
       <Redirect to={{
         pathname: "/login",
@@ -25,7 +25,7 @@ export function Tweets(props: RouteProps) {
 
   return (
     <Container>
-      <TweetComposer show={state.showComposeModal} onClose={() => { setState({ ...state, showComposeModal: false }) }} userTree={globalState.userTree} />
+      <TweetComposer show={state.showComposeModal} onClose={() => { setState({ ...state, showComposeModal: false }) }} feed={globalState.tweetFeed} />
       <Followed show={state.showFollowModal} onClose={() => { setState({ ...state, showFollowModal: false }) }} userTree={globalState.userTree} />
       <Level>
         <Level.Side align="left">
