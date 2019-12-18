@@ -1,14 +1,13 @@
 import debug from "debug";
-import path from "path";
 import Identities, { Identity } from 'orbit-db-identity-provider'
-import { OrbitDB } from "orbit-db";
+import OrbitDB from "orbit-db";
 import { TupeloIdentityProvider, TupeloIdentityProviderOptions } from "orbitdb-tupelo"
 import IPFS from "ipfs";
 import { ChainTree } from "tupelo-wasm-sdk";
 
+declare const window:any;
+
 const log = debug("db")
-const Keystore = require("orbit-db-keystore")
-const keyPath = path.resolve("./user/keys")
 
 let _ipfsNodePromise: Promise<IPFS>
 let _orbitdbPromise: Promise<OrbitDB>
@@ -39,7 +38,7 @@ function getIpfsNode(): Promise<IPFS> {
     return _ipfsNodePromise
 }
 
-async function newIdentity(userTree: ChainTree, keyStore: any): Promise<Identity> {
+async function newIdentity(userTree: ChainTree): Promise<Identity> {
     const did = await userTree.id()
     if (did === null) {
         throw new Error("Null user chaintree did!")
@@ -49,23 +48,33 @@ async function newIdentity(userTree: ChainTree, keyStore: any): Promise<Identity
         type: TupeloIdentityProvider.type,
         tree: userTree,
         did: did,
-        keystore: keyStore
     }
 
     return Identities.createIdentity(opts)
 }
 
-export async function getOrbitInstance(userTree: ChainTree): Promise<OrbitDB> {
+//TODO: theoretically you could put a different userTree here and you'd get back the *other*
+//users tree: this is ALPHA software - dragons
+// I think the usecase is to have a map of userTree -> orbit instances instead of the singleton promise
+export function getOrbitInstance(userTree: ChainTree): Promise<OrbitDB> {
     log("finding orbit-db instance")
-    if (_orbitdbPromise === undefined) {
-        log("orbit-db instances doesn't yet exist. initializing new one")
-        const ipfsNode = await getIpfsNode()
-        const keystore = new Keystore(keyPath)
-        const identity = await newIdentity(userTree, keystore)
-        const orbitOpts = { keystore, identity }
-
-        _orbitdbPromise = OrbitDB.createInstance(ipfsNode, orbitOpts)
+    if (_orbitdbPromise) {
+        return _orbitdbPromise
     }
+    _orbitdbPromise = new Promise(async (resolve,reject)=> {
+        log("orbit-db instances doesn't yet exist. initializing new one")
+        try {
+            const ipfsNode = await getIpfsNode()
+            // const orbitOpts = { keystore, identity }
+            const identity = await newIdentity(userTree)
+
+            const inst = await OrbitDB.createInstance(ipfsNode, {identity: identity})
+            window.orbitDb = inst
+            resolve(inst)
+        } catch(e) {
+            reject(e)
+        }
+    })
 
     return _orbitdbPromise
 }

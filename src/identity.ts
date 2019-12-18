@@ -122,7 +122,7 @@ export const register = async (username: string, password: string) => {
         setDataTransaction(usernamePath, username),
 
         // Register the tweet feed with the user tree
-        setDataTransaction(feedAddressPath, feed.address())
+        setDataTransaction(feedAddressPath, feed.address().toString())
     ])
 
     userTree.key = secureKey

@@ -221,6 +221,7 @@ export function LoginForm(props: RouteProps) {
     const did = await tree.id()
     const db = await getOrbitInstance(tree)
     const addressResponse = await tree.resolveData(feedAddressPath)
+    log("addressResponse: ", addressResponse)
     const tweetFeed = await TweetFeed.open(db, addressResponse.value)
 
     globalDispatch({
