@@ -1,38 +1,51 @@
-import React, { useContext } from 'react';
-import { Message, Button, Container } from 'react-bulma-components';
-import { StoreContext, IAppMessage, AppActions, IAppRemoveMessage } from '../state/store';
+import React, { useContext, useState, useEffect } from 'react';
+import { Message, Container } from 'react-bulma-components';
+import { StoreContext } from '../state/store';
 import { Tweet } from 'tweet';
+import { User } from 'identity';
+
+const useUserTweetFeed = (user?: User) => {
+  const [state, setState] = useState({ messages: [] } as { messages: Tweet[] })
+
+  function updateState(user: User) {
+    if (user && user.feed) {
+      console.log("all: ", user.feed.all())
+      setState({ messages: user.feed.all() })
+    }
+  }
+
+  useEffect(() => {
+    if (user && user.feed) {
+      updateState(user)
+      user.feed.on('write', () => {
+        updateState(user)
+      })
+    }
+  }, [user])
+
+  return state
+}
 
 export function UserMessageList() {
   const [globalState] = useContext(StoreContext)
 
-  const lis = globalState.messages.map((msg) => {
-    return <MessageElement message={msg} />
-  })
+  const feed = useUserTweetFeed(globalState.user)
 
   return (
     <Container>
       <ol style={{ listStyleType: 'none' }}>
-        {lis}
+        {feed.messages.map((msg) => {
+          return <MessageElement message={msg} />
+        })}
       </ol>
     </Container>
   )
 }
 
 const MessageElement = ({ message }: { message: Tweet }) => {
-  const [, globalDispatch] = useContext(StoreContext)
-
-  // if (message.id === undefined) {
-  //   throw new Error("a message must have an id when it's in the list")
-  // }
-
   return (
     <li key={message.time.getTime()}>
       <Message color="info">
-        {/* <Message.Header>
-          {message.title}
-          <Button remove onClick={() => { globalDispatch({ type: AppActions.removeMessage, id: message.id } as IAppRemoveMessage) }} />
-        </Message.Header> */}
         <Message.Body style={{ whiteSpace: 'pre' }}>
           {message.message}
         </Message.Body>

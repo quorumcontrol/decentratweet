@@ -4,6 +4,7 @@ import { Redirect, RouteProps } from 'react-router';
 import { StoreContext } from '../state/store';
 import { TweetComposer } from "../components/composer"
 import { Followed } from "../components/followed"
+import { UserMessageList } from "../components/messagelist"
 import debug from 'debug'
 
 const log = debug("tweetPage")
@@ -16,7 +17,7 @@ export function Tweets(props: RouteProps) {
   })
   const [globalState] = useContext(StoreContext)
 
-  if (!globalState.userTree || !globalState.tweetFeed) {
+  if (!globalState.user) {
     log("no tweetFeed or userTree, redirecting")
     return (
       <Redirect to={{
@@ -29,8 +30,8 @@ export function Tweets(props: RouteProps) {
 
   return (
     <Container>
-      <TweetComposer show={state.showComposeModal} onClose={() => { setState({ ...state, showComposeModal: false }) }} feed={globalState.tweetFeed} />
-      <Followed show={state.showFollowModal} onClose={() => { setState({ ...state, showFollowModal: false }) }} userTree={globalState.userTree} />
+      <TweetComposer show={state.showComposeModal} onClose={() => { setState({ ...state, showComposeModal: false }) }} feed={globalState.user.feed} />
+      <Followed show={state.showFollowModal} onClose={() => { setState({ ...state, showFollowModal: false }) }} userTree={globalState.user.tree} />
       <Level>
         <Level.Side align="left">
           <Level.Item>
@@ -41,6 +42,7 @@ export function Tweets(props: RouteProps) {
           </Level.Item>
         </Level.Side>
       </Level>
+      <UserMessageList />
     </Container>
   )
 }

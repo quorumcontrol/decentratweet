@@ -4,7 +4,6 @@ import "./App.scss";
 import { Navbar, Container, Loader, Columns, Section } from "react-bulma-components"
 import { StoreProvider, StoreContext } from "./state/store";
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
-import { UserMessageList } from "./components/messagelist"
 import { LoginForm } from "./pages/login";
 import { Tweets } from "./pages/tweets"
 
@@ -20,7 +19,6 @@ const Routing = () => {
       </Section>
       :
       <div>
-        <UserMessageList />
         <Router>
           <Switch>
             <Route path="/login">
@@ -47,7 +45,7 @@ const NavBar = () => {
         <img src={require("./logo.svg")} alt="Tupelo" />
       </Navbar.Brand>
       <Navbar.Container position="end">
-        {globalState && globalState.username && <p>Decentratweets for {globalState.username}</p>}
+        {globalState && globalState.user && <p>Decentratweets for {globalState.user.userName}</p>}
       </Navbar.Container>
     </Navbar>
   )

@@ -3,11 +3,8 @@ import React, { useReducer, useState, useContext } from "react";
 import { RouteProps, Redirect } from "react-router";
 import { Columns, Heading, Form, Icon, Loader, Button } from "react-bulma-components";
 import { ChainTree } from "tupelo-wasm-sdk";
-import { findUserAccount, verifyAccount, register } from "../identity";
+import { findUserAccount, verifyAccount, register, User } from "../identity";
 import { StoreContext, AppActions, IAppLogin } from "../state/store"
-import { TweetFeed } from "../tweet"
-import { getOrbitInstance } from "../db";
-import { feedAddressPath } from "../data";
 
 const log = debug("loginPage")
 
@@ -158,9 +155,9 @@ function LoginBottom({ state, dispatch, onLogin }: { state: ILoginState, dispatc
     const tree = state.userTree
     const username = state.username
 
-    const [verified, verTree] = await verifyAccount(username, password, tree)
+    const [verified, user] = await verifyAccount(username, password, tree)
     if (verified) {
-      onLogin(verTree)
+      onLogin(user)
     } else {
       setError("invalid password")
     }
@@ -191,9 +188,9 @@ function RegisterBottom({ state, dispatch, onLogin }: { state: ILoginState, disp
     dispatch({ type: Actions.registering })
     const doRegister = async () => {
       const username = state.username
-      const userTree = await register(username, password)
+      const user = await register(username, password)
 
-      onLogin(userTree)
+      onLogin(user)
     }
     doRegister()
   }
@@ -217,26 +214,16 @@ export function LoginForm(props: RouteProps) {
     dispatch({ type: Actions.loginFormType, username: evt.target.value, dispatch: dispatch } as IUsernameType)
   }
 
-  const onLogin = async (tree: ChainTree) => {
-    const did = await tree.id()
-    const db = await getOrbitInstance(tree)
-    const addressResponse = await tree.resolveData(feedAddressPath)
-    log("addressResponse: ", addressResponse)
-    const tweetFeed = await TweetFeed.open(db, addressResponse.value)
-    tweetFeed.setDispatch(globalDispatch)
-
+  const onLogin = async (user: User) => {
     globalDispatch({
       type: AppActions.login,
-      userTree: tree,
-      username: state.username,
-      did: did,
-      tweetFeed: tweetFeed
+      user: user,
     } as IAppLogin)
   }
 
   let { from } = (props.location && props.location.state) ? props.location.state : { from: { pathname: "/tweets" } };
 
-  if (globalState.userTree) {
+  if (globalState.user) {
     return (
       <Redirect to={from} />
     )

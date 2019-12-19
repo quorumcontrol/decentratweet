@@ -1,11 +1,8 @@
 import { debug } from "debug";
 import React, { createContext, useReducer, useEffect, useState } from "react";
-import { TweetFeed, Tweet } from "../tweet"
-import { ChainTree, EcdsaKey } from "tupelo-wasm-sdk";
 import { getAppCommunity } from "../appcommunity";
-import { usernamePath } from "../identity"
-import { getOrbitInstance } from "db";
-import { feedAddressPath } from "data";
+import { User, fromDidAndKeyString } from "../identity"
+
 
 const log = debug("stateStore")
 declare const Go: any;
@@ -28,24 +25,16 @@ export interface IAppMessage {
 }
 
 interface IAppState {
-  userTree?: ChainTree
-  username?: string
-  userDid?: string
-  tweetFeed?: TweetFeed
+  user?:User
   loading: number
-  messages: Tweet[]
 }
 
 export enum AppActions {
   loading,
   stopLoading,
   login,
-  setDID,
-  removeMessage,
   message,
   logout,
-  setUsername,
-  initialTweets,
 }
 
 export interface IAppAction {
@@ -62,15 +51,7 @@ export interface IAppStopLoading extends IAppAction {
 
 export interface IAppLogin extends IAppAction {
   type: AppActions.login
-  userTree: ChainTree
-  username: string
-  did: string
-  tweetFeed: TweetFeed
-}
-
-export interface IAppRemoveMessage extends IAppAction {
-  type: AppActions.removeMessage,
-  id: string
+  user:User
 }
 
 export interface IAppMessage extends IAppAction {
@@ -78,23 +59,8 @@ export interface IAppMessage extends IAppAction {
   message: IAppMessage,
 }
 
-export interface IAppInitialTweets extends IAppAction {
-  type: AppActions.initialTweets,
-  tweets: Tweet[],
-}
-
 export interface IAppLogout extends IAppAction {
   type: AppActions.logout
-}
-
-interface IAppSetDid extends IAppAction {
-  type: AppActions.setDID
-  did: string
-}
-
-interface IAppSetUsername extends IAppAction {
-  type: AppActions.setUsername
-  username: string
 }
 
 const initialState = { loading: 1, messages: [] } as IAppState
@@ -108,37 +74,11 @@ function reducer(state: IAppState, action: IAppAction) {
       return { ...state, loading: state.loading - 1 }
     case AppActions.login:
       act = action as IAppLogin
-      return { ...state, userTree: act.userTree, username: act.username, did: act.did, tweetFeed: act.tweetFeed }
-    case AppActions.setDID:
-      return { ...state, userDid: (action as IAppSetDid).did }
-    case AppActions.setUsername:
-      return { ...state, username: (action as IAppSetUsername).username }
+      return { ...state, user: act.user }
     case AppActions.logout:
       sessionStorage.removeItem('userDid')
       sessionStorage.removeItem('userKey')
       return { ...initialState, loading: 0 }
-    case AppActions.message:
-      const msg = (action as IAppMessage)
-      const tweet:Tweet = {
-        time: new Date(),
-        message: msg.body,
-      }
-      return { ...state, messages: [...state.messages, tweet] }
-    case AppActions.initialTweets:
-      return { ...state, messages: (action as IAppInitialTweets).tweets }
-    // case AppActions.removeMessage:
-    //   const id = (action as IAppRemoveMessage).id
-    //   let index = -1;
-    //   for (var i = state.messages.length - 1; i >= 0; i--) {
-    //     if (state.messages[i].id === id) {
-    //       index = i
-    //       break;
-    //     }
-    //   }
-    //   if (index === -1) {
-    //     return state // nothing to do here
-    //   }
-    //   return { ...state, messages: [...state.messages.slice(0, index), ...state.messages.slice(index + 1)] }
     default:
       throw new Error("unkown type: " + action.type)
   }
@@ -166,45 +106,22 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
           if (!did || !userKey) {
             throw new Error("no did or no userKey")
           }
-          const c = await getAppCommunity()
-          let tip
+          let user:User
           try {
-            tip = await c.getTip(did)
-          } catch (e) {
-            // in this case, the user had a set userDId, key, but
-            // the network didn't know about them, so let's just
-            // unset and let them login again
+            user = await fromDidAndKeyString(did, userKey)
+          } catch(e) {
             if (e === 'not found') {
               dispatch({
-                type: AppActions.logout,
+                type: AppActions.logout
               } as IAppLogout)
               return
             }
             throw e
           }
-          const key = await EcdsaKey.fromBytes(Buffer.from(userKey, 'base64'))
-
-          const tree = new ChainTree({
-            key: key,
-            tip: tip,
-            store: c.blockservice,
-          })
-
-          const username = (await tree.resolveData(usernamePath)).value
-          console.log('logging in from storage: ', username, ' did: ', did)
-
-          const db = await getOrbitInstance(tree)
-          const addressResponse = await tree.resolveData(feedAddressPath)
-          log("addressResponse: ", addressResponse)
-          const tweetFeed = await TweetFeed.open(db, addressResponse.value)
-          tweetFeed.setDispatch(dispatch)
-
+          
           dispatch({
             type: AppActions.login,
-            userTree: tree,
-            did: did,
-            username: username,
-            tweetFeed: tweetFeed,
+            user: user,
           } as IAppLogin)
 
           dispatch({
@@ -222,19 +139,9 @@ const StoreProvider = ({ children }: { children: JSX.Element[] }) => {
         }
       }
 
-      if (!state.userDid && state.userTree) {
-        // if we didn't yet assign the DID, do that
-        state.userTree.id().then((did) => {
-          dispatch({
-            type: AppActions.setDID,
-            did: did,
-          } as IAppSetDid)
-        })
-      }
-
-      if (state.userTree && state.userDid && state.userTree.key && state.userTree.key.privateKey) {
-        sessionStorage.setItem('userDid', state.userDid)
-        sessionStorage.setItem('userKey', Buffer.from(state.userTree.key.privateKey).toString('base64'))
+      if (state.user && state.user.did && state.user.tree.key && state.user.tree.key.privateKey) {
+        sessionStorage.setItem('userDid', state.user.did)
+        sessionStorage.setItem('userKey', Buffer.from(state.user.tree.key.privateKey).toString('base64'))
       }
 
       console.log({ newState: state });

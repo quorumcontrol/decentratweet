@@ -5,7 +5,6 @@ import OrbitDB from "orbit-db"
 import FeedStore from "orbit-db-feedstore"
 import { txsWithCommunityWait } from "./appcommunity";
 import { EventEmitter } from "events";
-import { IAppInitialTweets, IAppMessage, AppActions } from "state/store";
 
 const log = debug("tweet")
 
@@ -29,28 +28,25 @@ export interface Tweet {
  */
 export class TweetFeed extends EventEmitter {
     feed: FeedStore<Tweet>
-    dispatch?:Function
     last?:LogEntry<Tweet>
 
     constructor(feed: FeedStore<Tweet>) {
         super()
         console.log("feed")
         this.feed = feed
-        console.log("database ready: ", this.feed.iterator().collect())
-
-        this.feed.events.on('write', () => this.onWrite() )
+        feed.events.on('write', ()=> {this.onWrite()})
     }
 
     static async create(db: OrbitDB) {
         log("Creating tweet feed")
         const f = await db.feed<Tweet>(feedName)
-
         return new TweetFeed(f)
     }
 
     static async open(db: OrbitDB, address: string) {
         log("opening tweet feed at address " + address)
         const f = await db.feed<Tweet>(address)
+        await f.load()
 
         return new TweetFeed(f)
     }
@@ -63,34 +59,15 @@ export class TweetFeed extends EventEmitter {
     }
 
     onWrite() {
-        log("onWrite")
-        let next = this.feed.iterator({reverse: true}).next()
-        this.last = next.value //TODO: is this right?
-        this.dispatchTweet(next.value.payload.value)
+        this.emit("write")
     }
 
-    dispatchTweet(tweet:Tweet) {
-        if (!this.dispatch) {
-            log("no dispatch, returning")
-            return
-        }
-        log("dispatching")
-        this.dispatch({
-            type: AppActions.message,
-            body: tweet.message,
-        } as IAppMessage)
-    }
-
-    setDispatch(fn:Function) {
-        this.dispatch = fn
-        const iterator = this.feed.iterator({limit: -1})
-        let next = iterator.next()
-
-        while (next && !next.done) {
-            this.last = next.value
-            this.dispatchTweet(next.value.payload.value)
-            next = iterator.next()
-        } 
+    all() {
+        return this.feed.iterator({limit: -1}).collect().map((logEntry)=> {
+            const tweet = logEntry.payload.value
+            tweet.time = new Date(tweet.time)
+            return tweet
+        })
     }
 
     close() {

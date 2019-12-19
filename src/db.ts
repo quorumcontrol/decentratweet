@@ -24,14 +24,7 @@ function getIpfsNode(): Promise<IPFS> {
     if (_ipfsNodePromise === undefined) {
         log("ipfs node doesn't yet exist. initializing new one")
         _ipfsNodePromise = new Promise(async (resolve) => {
-            const ipfs = new IPFS({
-                repo: './ipfs',
-                EXPERIMENTAL: { pubsub: true },
-                config: {
-                    Bootstrap: [],
-                    Addresses: { Swarm: [] }
-                }
-            })
+            const ipfs = new IPFS({})
             ipfs.on("ready", () => resolve(ipfs))
         })
     }
