@@ -7,6 +7,7 @@ import { TweetFeed } from "./tweet";
 import KeyValueStore from "orbit-db-kvstore";
 import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
+import { EventEmitter } from "events";
 
 const log = debug("identity")
 
@@ -184,7 +185,7 @@ const pathToDbAddr = "/decentraTweet/db"
 const tweetKey = "tweets"
 const followingKey = "following"
 
-export class User {
+export class User extends EventEmitter {
     tree: ChainTree
     did?:string
     db?: KeyValueStore<string>
@@ -192,6 +193,7 @@ export class User {
     following?: FeedStore<string>
     community: Community
     userName: string
+    private _following: User[]
 
     //TODO: error handling
     static async find(userName: string, community: Community) {
@@ -203,9 +205,11 @@ export class User {
     }
 
     constructor(userName: string, tree: ChainTree, community: Community) {
+        super()
         this.tree = tree
         this.community = community
         this.userName = userName
+        this._following = []
     }
 
     async load(orbit: OrbitDB) {
@@ -214,14 +218,45 @@ export class User {
         const db = await orbit.keyvalue<string>(dbAddr.value)
         this.db = db
         await db.load()
-        this.feed = await TweetFeed.open(orbit, db.get(tweetKey))
+
+        const loadDb = async ()=> {
+            await db.load()
+            const tweetAddress = db.get(tweetKey)
+
+            log("kv for ", this.userName, " loaded, tweetKey: ", tweetAddress)
+            this.feed = await TweetFeed.open(this.userName, orbit, tweetAddress)
+
+            this.feed.on('new', ()=> {this.emit('new')})
+
+            this.following = await orbit.feed<string>(db.get(followingKey))
+            await this.following.load()
+            const following = this.following.iterator({limit:-1}).collect()
+            following.forEach(async (entry)=> {
+                const otherUser = await User.find(entry.payload.value, this.community)
+                if (!otherUser) {
+                    throw new Error("error getting other user")
+                }
+                this._follow(orbit, otherUser)
+            })
+        }
+
+        const tweetAddress = db.get(tweetKey)
+        if (tweetAddress) {
+            return loadDb()
+        }
+
+        log("no tweet address for ", this.userName)
+        db.events.once('replicated', ()=>{
+            log(this.userName, " replicated")
+            loadDb()
+        })
     }
 
     async createTweetStore(orbit: OrbitDB) {
         if (!this.db) {
             throw new Error("must have a db to setup the tweet Feed")
         }
-        this.feed = await TweetFeed.create(orbit)
+        this.feed = await TweetFeed.create(this.userName, orbit)
         await this.db.put(tweetKey, this.feed.address().toString())
         this.following = await orbit.feed<string>(this.userName + "-following")
         await this.db.put(followingKey, this.following.address.toString())
@@ -232,6 +267,43 @@ export class User {
 
         const userDb = await orbit.keyvalue<string>(this.userName)
         this.db = userDb
+    }
+
+    allTweets() {
+        if (!this.feed) {
+            throw new Error("must have a feed to get tweets")
+        }
+        let tweets = this.feed.all()
+        for (let user of this._following) {
+            if (user.feed) {
+                tweets = tweets.concat(user.feed.all())
+            }
+        }
+        return tweets.sort((a,b)=> { return a.time.getTime() - b.time.getTime()}).reverse()
+    }
+
+    async follow(orbit:OrbitDB, toFollow:string) {
+        if (!this.following) {
+            throw new Error("must have a following DB to follow")
+        }
+        
+        const otherUser = await User.find(toFollow, this.community)
+        if (!otherUser) {
+            throw new Error("error getting other user")
+        }
+
+        await this.following.add(toFollow)
+
+        return this._follow(orbit, otherUser)
+    }
+
+    private async _follow(orbit:OrbitDB, other:User) {
+        await other.load(orbit)
+        this._following.push(other)
+        other.on('new', ()=> {
+            log('user ', other.userName, ' has new tweets')
+            this.emit('new')
+        })
     }
 
     private async setDid():Promise<string> {

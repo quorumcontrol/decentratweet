@@ -10,14 +10,14 @@ const useUserTweetFeed = (user?: User) => {
   function updateState(user: User) {
     if (user && user.feed) {
       console.log("all: ", user.feed.all())
-      setState({ messages: user.feed.all() })
+      setState({ messages: user.allTweets() })
     }
   }
 
   useEffect(() => {
     if (user && user.feed) {
       updateState(user)
-      user.feed.on('write', () => {
+      user.on('new', () => {
         updateState(user)
       })
     }
@@ -44,8 +44,11 @@ export function UserMessageList() {
 
 const MessageElement = ({ message }: { message: Tweet }) => {
   return (
-    <li key={message.time.getTime()}>
+    <li key={message.time.getTime()} style={{marginBottom:"1em"}}>
       <Message color="info">
+        <Message.Header>
+          {message.name} tweeted
+        </Message.Header>
         <Message.Body style={{ whiteSpace: 'pre' }}>
           {message.message}
         </Message.Body>

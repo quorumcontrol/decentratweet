@@ -24,7 +24,11 @@ function getIpfsNode(): Promise<IPFS> {
     if (_ipfsNodePromise === undefined) {
         log("ipfs node doesn't yet exist. initializing new one")
         _ipfsNodePromise = new Promise(async (resolve) => {
-            const ipfs = new IPFS({})
+            const ipfs = new IPFS({
+                config: {
+                    Addresses:{Swarm:["/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star"]}
+                }
+            })
             ipfs.on("ready", () => resolve(ipfs))
         })
     }

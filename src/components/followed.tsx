@@ -1,13 +1,16 @@
-import React, { useState } from "react"
+import React, { useState, useContext } from "react"
 import { Modal, Form, Button, Media, Content, Loader } from "react-bulma-components"
 import { ChainTree } from "tupelo-wasm-sdk"
-import { follow } from "../tweet"
+import { StoreContext } from "state/store"
+import { getOrbitInstance } from "db"
 
 export function Followed({ show, onClose, userTree }: { userTree: ChainTree, show: boolean, onClose: (() => void) }) {
   const [state, setState] = useState({
     loading: false,
     followed: ""
   })
+
+  const [globalState] = useContext(StoreContext)
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     setState({ ...state, [evt.target.name]: evt.target.value })
@@ -16,7 +19,11 @@ export function Followed({ show, onClose, userTree }: { userTree: ChainTree, sho
   const handleSubmit = () => {
     setState({ ...state, loading: true })
     const doAsync = async () => {
-      await follow(userTree, state.followed)
+      if (!globalState.user) {
+        throw new Error("error getting user from state")
+      }
+      const db = await getOrbitInstance(globalState.user.tree)
+      await globalState.user.follow(db, state.followed)
       setState({ ...state, loading: false, followed: "" })
       onClose()
     }
